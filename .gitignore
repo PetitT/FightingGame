@@ -2,20 +2,20 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
+/FightingGame/[Ll]ibrary/
+/FightingGame/[Tt]emp/
+/FightingGame/[Oo]bj/
+/FightingGame/[Bb]uild/
+/FightingGame/[Bb]uilds/
+/FightingGame/[Ll]ogs/
+/FightingGame/[Uu]ser[Ss]ettings/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
-/[Mm]emoryCaptures/
+/FightingGame/[Mm]emoryCaptures/
 
 # Recordings can get excessive in size
-/[Rr]ecordings/
+/FightingGame/[Rr]ecordings/
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
@@ -73,5 +73,3 @@ crashlytics-build.properties
 
 # Parrelsync clones
 /FightingGame_clone_0
-
-/FightingGame/Library/
