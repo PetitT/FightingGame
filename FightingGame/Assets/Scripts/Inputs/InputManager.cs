@@ -3,12 +3,17 @@ using UnityEngine;
 
 public class InputManager : NetworkBehaviour
 {
-    private InputHandler _inputHandler = new InputHandler();
+    [SerializeField] private int InputDelay = 3;
+    private InputHandler _inputHandler = null;
 
     private bool Initialized = false;
 
-    public void Initialize()
+    public void Initialize( 
+        InputReceiverManager input_receiver_manager,
+        GameStateManager game_state_manager
+        )
     {
+        _inputHandler = new InputHandler( game_state_manager, input_receiver_manager, ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount, InputDelay );
         InputReader.OnInputReceived.AddListener( InputReader_OnInputReceived );
         Initialized = true;
     }
@@ -22,15 +27,17 @@ public class InputManager : NetworkBehaviour
         InputReader.OnInputReceived.RemoveListener( InputReader_OnInputReceived );
     }
 
-    public override void FixedUpdateNetwork()
+    public void OnFixedUpdateNetwork(
+        int tick
+        )
     {
         if( !Initialized )
         {
             return;
         }
 
-        Debug.Log( $"Calling InputHandler {Runner.Tick.Raw}" );
-        _inputHandler.OnFixedUpdateNetwork( Runner.Tick.Raw );
+        Debug.Log( $"Input manager fixed update {tick}" );
+        _inputHandler.OnFixedUpdateNetwork( tick );
     }
 
     private void InputReader_OnInputReceived(

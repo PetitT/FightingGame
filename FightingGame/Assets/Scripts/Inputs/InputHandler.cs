@@ -1,28 +1,43 @@
-using Fusion;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class InputHandler
 {
-    private const int INPUT_DELAY = 3;
-
     private readonly Dictionary<int, InputInfos> _inputInfos = new();
     private readonly Dictionary<int, GameState> _predictedGameStates = new();
 
-    private Inputs LastReceivedOpponentInput = new(); // FIXME : The first input here is always on team1
+    private GameStateManager _gameStateManager;
+    private InputReceiverManager _inputReceiverManager;
 
-    private int CurrentRealTick = 0;
-    private int CurrentTickToPlay => CurrentRealTick - INPUT_DELAY;
+    private Inputs _lastReceivedOpponentInput = new(); // FIXME : The first input here is always on team1
 
-    private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < CurrentTickToPlay;
+    private int _expectedPlayerCount = 0;
+    private int _inputDelay = 0;
+    private int _currentTick = 0;
+    private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _currentTick;
+
+    private InputHandler() { }
+
+    public InputHandler(
+        GameStateManager game_state_manager,
+        InputReceiverManager input_receiver_manager,
+        int expected_player_count,
+        int input_delay
+        )
+    {
+        _gameStateManager = game_state_manager;
+        _inputReceiverManager = input_receiver_manager;
+        _expectedPlayerCount = expected_player_count;
+        _inputDelay = input_delay;
+    }
 
     public void OnFixedUpdateNetwork(
         int tick
         )
     {
-        CurrentRealTick = tick;
+        _currentTick = tick;
+        Debug.Log( $"Applying tick {_currentTick}" );
         RestoreToRealGameState();
         ApplyCurrentTick();
     }
@@ -37,8 +52,9 @@ public class InputHandler
             _predictedGameStates.Remove( tick );
         }
 
-        _predictedGameStates.Add( tick, GameManager.Instance.GameStateManager.GetGameState() );
+        _predictedGameStates.Add( tick, _gameStateManager.GetGameState() );
     }
+
     private void ApplyCurrentTick()
     {
         if( IsInPrediction )
@@ -46,24 +62,26 @@ public class InputHandler
             return;
         }
 
-        if( !_inputInfos.ContainsKey( CurrentTickToPlay ) )
+        if( !_inputInfos.ContainsKey( _currentTick ) )
         {
-            Debug.LogError( $"No input infos found for tick {CurrentTickToPlay}." );
+            Debug.LogError( $"No input infos found for tick {_currentTick}." );
 
             return;
         }
 
-        InputInfos current_infos = _inputInfos[ CurrentTickToPlay ];
+        InputInfos current_infos = _inputInfos[ _currentTick ];
 
         if( !current_infos.HasInputsFromAllPlayers() )
         {
-            current_infos.AddPredictedInput( LastReceivedOpponentInput );
-            ApplyInputs( current_infos.PredictedInputs, CurrentTickToPlay );
+            current_infos.AddPredictedInput( _lastReceivedOpponentInput );
+            ApplyInputs( current_infos.PredictedInputs, _currentTick );
+            Debug.Log( "Predicted tick" );
         }
         else
         {
-            ApplyInputs( current_infos.RealInputs, CurrentTickToPlay );
-            ValidateTick( CurrentTickToPlay );
+            ApplyInputs( current_infos.RealInputs, _currentTick );
+            ValidateTick( _currentTick );
+            Debug.Log( $"Applied real tick" );
         }
     }
 
@@ -76,7 +94,7 @@ public class InputHandler
 
         int first_tick = _inputInfos.First().Key;
 
-        for( int target_tick = first_tick; target_tick < CurrentTickToPlay; target_tick++ )
+        for( int target_tick = first_tick; target_tick < _currentTick; target_tick++ )
         {
             InputInfos input_infos = _inputInfos[ target_tick ];
 
@@ -105,7 +123,7 @@ public class InputHandler
         )
     {
         StoreGameState( tick );
-        // Apply the inputs
+        _inputReceiverManager.ApplyInputs( inputs );
     }
 
     private void RollbackToTick(
@@ -119,7 +137,8 @@ public class InputHandler
             return;
         }
 
-        GameManager.Instance.GameStateManager.RestoreGameState( _predictedGameStates[ tick ] ); // might need to restore to previous tick
+        Debug.Log( $"Rolling back to tick {tick}" );
+        _gameStateManager.RestoreGameState( _predictedGameStates[ tick ] ); // might need to restore to previous tick
         _predictedGameStates.Clear();
     }
 
@@ -127,17 +146,19 @@ public class InputHandler
         int initial_tick
         )
     {
-        for( int current_tick = initial_tick; current_tick <= CurrentTickToPlay; current_tick++ )
+        for( int current_tick = initial_tick; current_tick <= _currentTick; current_tick++ )
         {
             InputInfos current_inputs = _inputInfos[ current_tick ];
 
             if( current_inputs.HasInputsFromAllPlayers() )
             {
+                Debug.Log( $"Replaying tick {initial_tick} with real input" );
                 ApplyInputs( current_inputs.RealInputs, current_tick );
             }
             else
             {
-                current_inputs.AddPredictedInput( LastReceivedOpponentInput );
+                Debug.Log( $"Replaying tick {initial_tick} with predicted inputs" );
+                current_inputs.AddPredictedInput( _lastReceivedOpponentInput );
                 ApplyInputs( current_inputs.PredictedInputs, current_tick );
             }
         }
@@ -155,11 +176,13 @@ public class InputHandler
         InputReceivedArgs input_received_args
         )
     {
-        AddRealInputs( input_received_args.Inputs, input_received_args.Tick );
+        int tick_to_play = input_received_args.Tick + _inputDelay;
+        Debug.Log( $"Receive input at tick {input_received_args.Tick} to be playedat tick {tick_to_play} - {( input_received_args.IsLocalInput ? "Local" : "Remote" )}" );
+        AddRealInputs( input_received_args.Inputs, tick_to_play );
 
         if( !input_received_args.IsLocalInput )
         {
-            LastReceivedOpponentInput = input_received_args.Inputs;
+            _lastReceivedOpponentInput = input_received_args.Inputs;
         }
     }
 
@@ -170,22 +193,9 @@ public class InputHandler
     {
         if( !_inputInfos.ContainsKey( tick ) )
         {
-            _inputInfos.Add( tick, new InputInfos() );
+            _inputInfos.Add( tick, new InputInfos( _expectedPlayerCount ) );
         }
 
         _inputInfos[ tick ].AddRealInput( input );
-    }
-
-    private void AddPredictedInputs(
-        Inputs input,
-        int tick
-        )
-    {
-        if( !_inputInfos.ContainsKey( tick ) )
-        {
-            _inputInfos.Add( tick, new InputInfos() );
-        }
-
-        _inputInfos[ tick ].AddPredictedInput( input );
     }
 }

@@ -9,6 +9,17 @@ public class InputInfos
     public IReadOnlyList<Inputs> RealInputs => _realInputs;
     public IReadOnlyList<Inputs> PredictedInputs => _predictedInputs;
 
+    private int ExpectedInputsCount = 0;
+
+    private InputInfos() { }
+
+    public InputInfos(
+        int expected_input_count
+        )
+    {
+        ExpectedInputsCount = expected_input_count;
+    }
+
     public void AddRealInput(
         Inputs input
         )
@@ -32,7 +43,7 @@ public class InputInfos
 
     public bool HasInputsFromAllPlayers()
     {
-        return _realInputs.Count == ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount;
+        return _realInputs.Count == ExpectedInputsCount;
     }
 
     public bool RealAndPredictedInputsMatch()

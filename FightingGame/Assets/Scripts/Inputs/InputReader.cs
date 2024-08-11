@@ -15,7 +15,7 @@ public class InputReader : NetworkBehaviour
         _team = team;
     }
 
-    public override void FixedUpdateNetwork()
+    public void OnFixedUpdateNetwork()
     {
         ReadInputs();
     }

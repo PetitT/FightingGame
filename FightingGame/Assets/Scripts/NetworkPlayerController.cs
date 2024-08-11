@@ -1,4 +1,3 @@
-using Cysharp.Threading.Tasks.Triggers;
 using Fusion;
 using UnityEngine;
 
@@ -12,6 +11,8 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private bool _gameStarted = false;
     private ETeam _team = ETeam.TeamOne;
+
+    public int CurrentTick => Runner.Tick.Raw;
 
     public override void Spawned()
     {
@@ -42,6 +43,12 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
+        CheckForGameStart();
+        UpdateInputs();
+    }
+
+    private void CheckForGameStart()
+    {
         if( StartTick == INVALID_TICK
             || _gameStarted
             )
@@ -49,20 +56,26 @@ public class NetworkPlayerController : NetworkBehaviour
             return;
         }
 
-        if( Runner.Tick.Raw == StartTick )
+        if( CurrentTick == StartTick )
         {
             _gameStarted = true;
             _inputReader.Initialize( _team );
-            _inputManager.Initialize();
+            _inputManager.Initialize( GameManager.Instance.InputReceiverManager, GameManager.Instance.GameStateManager );
             Debug.Log( $"Tick {StartTick} attained, starting the game" );
         }
+    }
+
+    private void UpdateInputs()
+    {
+        _inputReader.OnFixedUpdateNetwork();
+        _inputManager.OnFixedUpdateNetwork( CurrentTick );
     }
 
     private void GameManager_OnStartTickDecided(
         int tick
         )
     {
-        Debug.Log( $"Received start tick: {tick}, current is {Runner.Tick.Raw}" );
+        Debug.Log( $"Received start tick: {tick}, current is {CurrentTick}" );
         StartTick = tick;
     }
 }

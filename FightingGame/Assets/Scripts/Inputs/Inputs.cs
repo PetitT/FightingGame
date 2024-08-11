@@ -1,5 +1,6 @@
 ﻿using System;
 
+[Serializable]
 public struct Inputs
 {
     // Position and Movement may only be -1, 0, or 1

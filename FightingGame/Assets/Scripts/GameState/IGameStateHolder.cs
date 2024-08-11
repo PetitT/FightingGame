@@ -1,5 +1,5 @@
 ﻿public interface IGameStateHolder
 {
-    public void StoreGameState( GameState gameState );
+    public void UpdateGameState( GameState gameState );
     public void RollbackToGameState( GameState gameState );
 }

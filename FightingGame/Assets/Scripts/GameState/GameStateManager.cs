@@ -1,7 +1,6 @@
-﻿using Fusion;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-public class GameStateManager : NetworkBehaviour
+public class GameStateManager
 {
     private readonly List<IGameStateHolder> GameStateHolders = new();
 
@@ -18,7 +17,7 @@ public class GameStateManager : NetworkBehaviour
 
         foreach( IGameStateHolder game_state_holder in GameStateHolders )
         {
-            game_state_holder.StoreGameState( game_state );
+            game_state_holder.UpdateGameState( game_state );
         }
 
         return game_state;
