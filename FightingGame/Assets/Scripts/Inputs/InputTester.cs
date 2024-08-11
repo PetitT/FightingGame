@@ -5,22 +5,21 @@ public class InputTester : MonoBehaviour, IGameStateHolder, IInputReceiver
 {
     [SerializeField] private Inputs _p1Input = default;
     [SerializeField] private Inputs _p2Input = default;
+    [SerializeField, Fusion.ReadOnly] private int _nextPlayedTick = 0;
     [SerializeField, Fusion.ReadOnly] private int _targetTickForP2 = 0;
 
-    [SerializeField, Fusion.ReadOnly] private int _nextPlayedTick = 0;
-
-    [SerializeField] private int InputDelay = 0;
+    [SerializeField, Fusion.ReadOnly] private int TotalAttacks = 0;
+    private int InputDelay = 2;
 
     private GameStateManager _gameStateManager = new();
     private InputReceiverManager _inputReceiverManager = new();
-
     private InputHandler _inputHandler = null;
 
-    [Fusion.ReadOnly] public bool HasSentP1InputThisFrame = false;
+    public bool HasSentP1InputThisFrame { get; set; }
 
     private void Start()
     {
-        _inputHandler = new InputHandler( _gameStateManager, _inputReceiverManager, expected_player_count: 2, InputDelay );
+        _inputHandler = new InputHandler( _gameStateManager, _inputReceiverManager, expected_player_count: 2, InputDelay, ETeam.TeamOne );
         _gameStateManager.RegisterGameStateHolder( this );
         _inputReceiverManager.RegisterInputReceiver( this );
     }
@@ -54,20 +53,26 @@ public class InputTester : MonoBehaviour, IGameStateHolder, IInputReceiver
         IReadOnlyList<Inputs> inputs
         )
     {
-
+        foreach( var input in inputs )
+        {
+            if( input.IsAttacking )
+            {
+                TotalAttacks++;
+            }
+        }
     }
 
     public void UpdateGameState(
-        GameState gameState
+        GameState game_state
         )
     {
-
+        game_state.TotalAttacks = TotalAttacks;
     }
 
     public void RollbackToGameState(
-        GameState gameState
+        GameState game_state
         )
     {
-
+       TotalAttacks = game_state.TotalAttacks;
     }
 }

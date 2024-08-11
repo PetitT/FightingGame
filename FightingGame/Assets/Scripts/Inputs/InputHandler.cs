@@ -4,17 +4,20 @@ using UnityEngine;
 
 public class InputHandler
 {
+
     private readonly Dictionary<int, InputInfos> _inputInfos = new();
     private readonly Dictionary<int, GameState> _predictedGameStates = new();
 
     private GameStateManager _gameStateManager;
     private InputReceiverManager _inputReceiverManager;
 
-    private Inputs _lastReceivedOpponentInput = new(); // FIXME : The first input here is always on team1
+    private Inputs _lastReceivedOpponentInput = new();
 
     private int _expectedPlayerCount = 0;
     private int _inputDelay = 0;
     private int _currentTick = 0;
+    private bool _enableLogs = true; // Add a bool to toggle logs
+
     private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _currentTick;
 
     private InputHandler() { }
@@ -23,13 +26,15 @@ public class InputHandler
         GameStateManager game_state_manager,
         InputReceiverManager input_receiver_manager,
         int expected_player_count,
-        int input_delay
+        int input_delay,
+        ETeam local_team
         )
     {
         _gameStateManager = game_state_manager;
         _inputReceiverManager = input_receiver_manager;
         _expectedPlayerCount = expected_player_count;
         _inputDelay = input_delay;
+        _lastReceivedOpponentInput = new Inputs( local_team.GetOppositeTeam() );
     }
 
     public void OnFixedUpdateNetwork(
@@ -37,7 +42,7 @@ public class InputHandler
         )
     {
         _currentTick = tick;
-        Debug.Log( $"Applying tick {_currentTick}" );
+        Log( $"Applying tick {_currentTick}" );
         RestoreToRealGameState();
         ApplyCurrentTick();
     }
@@ -48,7 +53,7 @@ public class InputHandler
     {
         if( _predictedGameStates.ContainsKey( tick ) )
         {
-            Debug.LogWarning( $"Overwriting game state for tick {tick}." );
+            Log( $"Overwriting game state for tick {tick}." );
             _predictedGameStates.Remove( tick );
         }
 
@@ -57,15 +62,9 @@ public class InputHandler
 
     private void ApplyCurrentTick()
     {
-        if( IsInPrediction )
-        {
-            return;
-        }
-
         if( !_inputInfos.ContainsKey( _currentTick ) )
         {
-            Debug.LogError( $"No input infos found for tick {_currentTick}." );
-
+            Log( $"No input infos found for tick {_currentTick}." );
             return;
         }
 
@@ -75,13 +74,13 @@ public class InputHandler
         {
             current_infos.AddPredictedInput( _lastReceivedOpponentInput );
             ApplyInputs( current_infos.PredictedInputs, _currentTick );
-            Debug.Log( "Predicted tick" );
+            Log( "Predicted tick" );
         }
         else
         {
             ApplyInputs( current_infos.RealInputs, _currentTick );
             ValidateTick( _currentTick );
-            Debug.Log( $"Applied real tick" );
+            Log( $"Applied real tick" );
         }
     }
 
@@ -105,6 +104,7 @@ public class InputHandler
 
             if( input_infos.RealAndPredictedInputsMatch() )
             {
+                Log( $"Tick {target_tick} was predicted correctly" );
                 ValidateTick( target_tick );
 
                 continue;
@@ -132,12 +132,11 @@ public class InputHandler
     {
         if( !_predictedGameStates.ContainsKey( tick ) )
         {
-            Debug.LogError( $"No game state found for tick {tick} in predicted game states." );
-
+            Log( $"No game state found for tick {tick} in predicted game states." );
             return;
         }
 
-        Debug.Log( $"Rolling back to tick {tick}" );
+        Log( $"Rolling back to tick {tick}" );
         _gameStateManager.RestoreGameState( _predictedGameStates[ tick ] ); // might need to restore to previous tick
         _predictedGameStates.Clear();
     }
@@ -146,18 +145,18 @@ public class InputHandler
         int initial_tick
         )
     {
-        for( int current_tick = initial_tick; current_tick <= _currentTick; current_tick++ )
+        for( int current_tick = initial_tick; current_tick < _currentTick; current_tick++ )
         {
             InputInfos current_inputs = _inputInfos[ current_tick ];
 
             if( current_inputs.HasInputsFromAllPlayers() )
             {
-                Debug.Log( $"Replaying tick {initial_tick} with real input" );
+                Log( $"Replaying tick {current_tick} with real input" );
                 ApplyInputs( current_inputs.RealInputs, current_tick );
             }
             else
             {
-                Debug.Log( $"Replaying tick {initial_tick} with predicted inputs" );
+                Log( $"Replaying tick {current_tick} with predicted inputs" );
                 current_inputs.AddPredictedInput( _lastReceivedOpponentInput );
                 ApplyInputs( current_inputs.PredictedInputs, current_tick );
             }
@@ -177,10 +176,14 @@ public class InputHandler
         )
     {
         int tick_to_play = input_received_args.Tick + _inputDelay;
-        Debug.Log( $"Receive input at tick {input_received_args.Tick} to be playedat tick {tick_to_play} - {( input_received_args.IsLocalInput ? "Local" : "Remote" )}" );
+        Log( $"Receive input at tick {input_received_args.Tick} to be played at tick {tick_to_play} - {( input_received_args.IsLocalInput ? "Local" : "Remote" )}" );
         AddRealInputs( input_received_args.Inputs, tick_to_play );
 
-        if( !input_received_args.IsLocalInput )
+        if( input_received_args.IsLocalInput )
+        {
+            AddPredictedInputs( input_received_args.Inputs, tick_to_play );
+        }
+        else
         {
             _lastReceivedOpponentInput = input_received_args.Inputs;
         }
@@ -197,5 +200,26 @@ public class InputHandler
         }
 
         _inputInfos[ tick ].AddRealInput( input );
+    }
+
+    private void AddPredictedInputs(
+        Inputs input,
+        int tick
+        )
+    {
+        if( !_inputInfos.ContainsKey( tick ) )
+        {
+            _inputInfos.Add( tick, new InputInfos( _expectedPlayerCount ) );
+        }
+
+        _inputInfos[ tick ].AddPredictedInput( input );
+    }
+
+    private void Log( string message )
+    {
+        if( _enableLogs )
+        {
+            Debug.Log( message );
+        }
     }
 }

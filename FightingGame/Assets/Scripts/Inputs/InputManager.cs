@@ -10,10 +10,11 @@ public class InputManager : NetworkBehaviour
 
     public void Initialize( 
         InputReceiverManager input_receiver_manager,
-        GameStateManager game_state_manager
+        GameStateManager game_state_manager,
+        ETeam local_team
         )
     {
-        _inputHandler = new InputHandler( game_state_manager, input_receiver_manager, ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount, InputDelay );
+        _inputHandler = new InputHandler( game_state_manager, input_receiver_manager, ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount, InputDelay, local_team );
         InputReader.OnInputReceived.AddListener( InputReader_OnInputReceived );
         Initialized = true;
     }

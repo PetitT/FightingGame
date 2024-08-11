@@ -24,6 +24,16 @@ public struct Inputs
     }
 
     public Inputs(
+        ETeam team
+        )
+    {
+        Team = team;
+        Position = 0;
+        Movement = 0;
+        IsAttacking = false;
+    }
+
+    public Inputs(
         byte input
         )
     {

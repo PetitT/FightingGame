@@ -55,7 +55,7 @@ public class InputInfos
 
         foreach( Inputs input in _realInputs )
         {
-            if( _predictedInputs.FirstOrDefault( selected_input => selected_input.Team == input.Team ).Equals( input ) )
+            if( !_predictedInputs.FirstOrDefault( selected_input => selected_input.Team == input.Team ).Equals( input ) )
             {
                 return false;
             }
