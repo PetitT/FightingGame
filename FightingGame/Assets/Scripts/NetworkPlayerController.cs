@@ -5,6 +5,9 @@ public class NetworkPlayerController : NetworkBehaviour
 {
     [SerializeField] private InputReader _inputReader = null;
     [SerializeField] private InputManager _inputManager = null;
+    [SerializeField] private CharacterDescription _characterDescription = null;
+
+    private Character _character = null;
 
     private const int INVALID_TICK = -1;
     private int StartTick = INVALID_TICK;
@@ -59,6 +62,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if( CurrentTick == StartTick )
         {
             _gameStarted = true;
+            _character = _characterDescription.GetCharacter( _team );
             _inputReader.Initialize( _team );
             _inputManager.Initialize( GameManager.Instance.InputReceiverManager, GameManager.Instance.GameStateManager, _team );
             Debug.Log( $"Tick {StartTick} attained, starting the game" );

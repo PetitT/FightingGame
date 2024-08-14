@@ -49,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _inputReader: {fileID: 5148735747819829611}
   _inputManager: {fileID: 7004139363727135592}
+  _characterDescription: {fileID: 11400000, guid: 5ffa2e79a44828046878cbd8da1bb8f4, type: 2}
 --- !u!114 &4047762393375862435
 MonoBehaviour:
   m_ObjectHideFlags: 0
