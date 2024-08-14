@@ -1,5 +1,9 @@
-﻿public interface IGameStateHolder
+﻿public interface IGameStateHolder<T> where T : GameStateBase
 {
-    public void UpdateGameState( GameState gameState );
-    public void RollbackToGameState( GameState gameState );
+    /// <summary>
+    /// Write all the game state into the game_state parameter
+    /// </summary>
+    /// <param name="game_state"></param>
+    public void UpdateGameState( T game_state );
+    public void RollbackToGameState( T game_state );
 }

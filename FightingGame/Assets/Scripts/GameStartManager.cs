@@ -3,16 +3,18 @@ using UnityEngine;
 
 public class GameStartManager : NetworkBehaviour
 {
-    private const int TICKS_FOR_GAME_START = 100;
 
-    [Networked, OnChangedRender( nameof( OnStartTickChanged ) )] private int StartTick { get; set; }
+    [SerializeField] private GameDatas _gameDatas;
 
-    public BufferedEvent<int> OnStartTickDecided = new();
+    public readonly BufferedEvent<int> OnStartTickDecided = new();
+
+    [Networked, OnChangedRender( nameof( OnStartTickChanged ) )] private int _startTick { get; set; }
+    private int _ticksForGameStart => _gameDatas.TicksForGameStart;
 
     public override void Spawned()
     {
         if( !HasStateAuthority
-            && StartTick != 0
+            && _startTick != 0
             )
         {
             OnStartTickChanged();
@@ -29,12 +31,12 @@ public class GameStartManager : NetworkBehaviour
         RpcInfo info = default
         )
     {
-        StartTick = info.Tick.Raw + TICKS_FOR_GAME_START;
+        _startTick = info.Tick.Raw + _ticksForGameStart;
     }
 
     private void OnStartTickChanged()
     {
-        Debug.Log( $"Start tick changed to {StartTick}" );
-        OnStartTickDecided.FireEvent( StartTick );
+        Debug.Log( $"Start tick changed to {_startTick}" );
+        OnStartTickDecided.FireEvent( _startTick );
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputTester : MonoBehaviour, IGameStateHolder, IInputReceiver
+public class InputTester : MonoBehaviour, IGameStateHolder<TestGameState>, IInputReceiver
 {
     [SerializeField] private Inputs _p1Input = default;
     [SerializeField] private Inputs _p2Input = default;
@@ -11,15 +11,15 @@ public class InputTester : MonoBehaviour, IGameStateHolder, IInputReceiver
     [SerializeField, Fusion.ReadOnly] private int TotalAttacks = 0;
     private int InputDelay = 2;
 
-    private GameStateManager _gameStateManager = new();
+    private GameStateManager<TestGameState> _gameStateManager = new();
     private InputReceiverManager _inputReceiverManager = new();
-    private InputHandler _inputHandler = null;
+    private InputHandler<TestGameState> _inputHandler = null;
 
     public bool HasSentP1InputThisFrame { get; set; }
 
     private void Start()
     {
-        _inputHandler = new InputHandler( _gameStateManager, _inputReceiverManager, expected_player_count: 2, InputDelay, ETeam.TeamOne );
+        _inputHandler = new InputHandler<TestGameState>( _gameStateManager, _inputReceiverManager, expected_player_count: 2, InputDelay, ETeam.TeamOne );
         _gameStateManager.RegisterGameStateHolder( this );
         _inputReceiverManager.RegisterInputReceiver( this );
     }
@@ -63,14 +63,14 @@ public class InputTester : MonoBehaviour, IGameStateHolder, IInputReceiver
     }
 
     public void UpdateGameState(
-        GameState game_state
+        TestGameState game_state
         )
     {
         game_state.TotalAttacks = TotalAttacks;
     }
 
     public void RollbackToGameState(
-        GameState game_state
+        TestGameState game_state
         )
     {
        TotalAttacks = game_state.TotalAttacks;

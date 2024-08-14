@@ -1,33 +1,34 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
-public class GameStateManager
+public class GameStateManager<T> where T : GameStateBase
 {
-    private readonly List<IGameStateHolder> GameStateHolders = new();
+    private readonly List<IGameStateHolder<T>> GameStateHolders = new();
 
     public void RegisterGameStateHolder(
-        IGameStateHolder gameStateHolder
+        IGameStateHolder<T> gameStateHolder
         )
     {
         GameStateHolders.Add( gameStateHolder );
     }
 
-    public GameState GetGameState()
+    public T GetGameState()
     {
-        GameState game_state = new();
+        T new_object = (T)Activator.CreateInstance( typeof( T ) );
 
-        foreach( IGameStateHolder game_state_holder in GameStateHolders )
+        foreach( IGameStateHolder<T> game_state_holder in GameStateHolders )
         {
-            game_state_holder.UpdateGameState( game_state );
+            game_state_holder.UpdateGameState( new_object );
         }
 
-        return game_state;
+        return new_object;
     }
 
     public void RestoreGameState(
-        GameState game_state
+        T game_state
         )
     {
-        foreach( IGameStateHolder game_state_holder in GameStateHolders )
+        foreach( IGameStateHolder<T> game_state_holder in GameStateHolders )
         {
             game_state_holder.RollbackToGameState( game_state );
         }

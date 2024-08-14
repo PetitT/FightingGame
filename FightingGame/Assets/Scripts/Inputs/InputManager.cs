@@ -3,18 +3,25 @@ using UnityEngine;
 
 public class InputManager : NetworkBehaviour
 {
-    [SerializeField] private int InputDelay = 3;
-    private InputHandler _inputHandler = null;
+    [SerializeField] private GameDatas _gameDatas = null;
+    private InputHandler<GameStateMatch> _inputHandler = null;
 
     private bool Initialized = false;
 
     public void Initialize( 
         InputReceiverManager input_receiver_manager,
-        GameStateManager game_state_manager,
+        GameStateManager<GameStateMatch> game_state_manager,
         ETeam local_team
         )
     {
-        _inputHandler = new InputHandler( game_state_manager, input_receiver_manager, ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount, InputDelay, local_team );
+        _inputHandler = new InputHandler<GameStateMatch>(
+            game_state_manager, 
+            input_receiver_manager,
+            ScenarioManager.Instance.ActiveScenario.ConnexionHandler.PlayerCount,
+            _gameDatas.InputTickDelay,
+            local_team 
+            );
+
         InputReader.OnInputReceived.AddListener( InputReader_OnInputReceived );
         Initialized = true;
     }
@@ -37,7 +44,6 @@ public class InputManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log( $"Input manager fixed update {tick}" );
         _inputHandler.OnFixedUpdateNetwork( tick );
     }
 

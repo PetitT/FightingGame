@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class InputHandler
+// Do I really want a reference to game state here ?
+public class InputHandler<T> where T : GameStateBase
 {
-
     private readonly Dictionary<int, InputInfos> _inputInfos = new();
-    private readonly Dictionary<int, GameState> _predictedGameStates = new();
+    private readonly Dictionary<int, T> _predictedGameStates = new();
 
-    private GameStateManager _gameStateManager;
+    private GameStateManager<T> _gameStateManager;
     private InputReceiverManager _inputReceiverManager;
 
     private Inputs _lastReceivedOpponentInput = new();
@@ -16,14 +16,14 @@ public class InputHandler
     private int _expectedPlayerCount = 0;
     private int _inputDelay = 0;
     private int _currentTick = 0;
-    private bool _enableLogs = true; // Add a bool to toggle logs
+    private bool _enableLogs = true;
 
     private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _currentTick;
 
     private InputHandler() { }
 
     public InputHandler(
-        GameStateManager game_state_manager,
+        GameStateManager<T> game_state_manager,
         InputReceiverManager input_receiver_manager,
         int expected_player_count,
         int input_delay,
