@@ -1,10 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Character : MonoBehaviour, IGameStateHolder<GameStateBase>, IInputReceiver
 {
-    [SerializeField] private CharacterStateBase _initialState;
+    [SerializeField] private CharacterStateDescription _initialState = null;
 
     private ETeam _team;
 
@@ -16,7 +15,8 @@ public class Character : MonoBehaviour, IGameStateHolder<GameStateBase>, IInputR
         )
     {
         _team = team;
-        _stateMachine = new CharacterStateMachine( _initialState );
+        _stateMachine = new CharacterStateMachine();
+        _stateMachine.SetState( _initialState );
         _gameStateHolders.Add( _stateMachine );
     }
 
@@ -34,22 +34,16 @@ public class Character : MonoBehaviour, IGameStateHolder<GameStateBase>, IInputR
     }
 
     public void UpdateGameState(
-        GameStateBase gameState
+        GameStateBase game_state
         )
     {
-        foreach( IGameStateHolder<GameStateBase> game_state_holder in _gameStateHolders )
-        {
-            game_state_holder.UpdateGameState( gameState );
-        }
+        _gameStateHolders.ForEach( element => element.UpdateGameState( game_state ) );
     }
 
     public void RollbackToGameState(
-        GameStateBase gameState
+        GameStateBase game_state
         )
     {
-        foreach( IGameStateHolder<GameStateBase> game_state_holder in _gameStateHolders )
-        {
-            game_state_holder.RollbackToGameState( gameState );
-        }
+        _gameStateHolders.ForEach( element => element.RollbackToGameState( game_state ) );
     }
 }

@@ -63,6 +63,7 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _gameStarted = true;
             _character = _characterDescription.GetCharacter( _team );
+            GameManager.Instance.InputReceiverManager.RegisterInputReceiver( _character );
             _inputReader.Initialize( _team );
             _inputManager.Initialize( GameManager.Instance.InputReceiverManager, GameManager.Instance.GameStateManager, _team );
             Debug.Log( $"Tick {StartTick} attained, starting the game" );

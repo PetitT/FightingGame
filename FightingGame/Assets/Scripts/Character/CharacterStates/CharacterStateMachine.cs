@@ -1,18 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class CharacterStateMachine : IGameStateHolder<GameStateBase>
 {
     private CharacterStateBase _currentState;
 
-    private CharacterStateMachine() { }
-
-    public CharacterStateMachine(
-        CharacterStateBase initial_state
+    public void SetState(
+        CharacterStateDescription description
         )
     {
-        _currentState = initial_state;
+        _currentState = description.GetCharacterState();
     }
 
     public void ProcessInputs(
@@ -22,14 +16,17 @@ public class CharacterStateMachine : IGameStateHolder<GameStateBase>
         _currentState.ProcessInput( inputs );
     }
 
-    public void UpdateGameState( GameStateBase gameState )
+    public void UpdateGameState(
+        GameStateBase gameState
+        )
     {
-        throw new System.NotImplementedException();
+
     }
 
-    public void RollbackToGameState( GameStateBase gameState )
+    public void RollbackToGameState(
+        GameStateBase gameState
+        )
     {
-        throw new System.NotImplementedException();
-    }
 
+    }
 }

@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15192d6d5dc136540ba6fe4aa67b6904, type: 3}
-  m_Name: SO_CharacterStateMove
+  m_Script: {fileID: 11500000, guid: 921929203e68da243b7804134f1158d2, type: 3}
+  m_Name: SO_CharacterState_Idle
   m_EditorClassIdentifier: 
+  _statePrefab: {fileID: 5950551199456365448, guid: ae95670c5ad8fd7448a2865012abba91, type: 3}
