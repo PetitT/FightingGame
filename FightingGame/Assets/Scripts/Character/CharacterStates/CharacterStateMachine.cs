@@ -23,11 +23,11 @@ public class CharacterStateMachine : IGameStateHolder<GameStateMatch>
         _currentDescription = description;
     }
 
-    public void ProcessInputs(
-        Inputs inputs
+    public void ProcessCommand(
+        Command command
         )
     {
-        _currentState.ProcessInput( inputs );
+        _currentState.ProcessCommand( command );
     }
 
     public void UpdateGameState(

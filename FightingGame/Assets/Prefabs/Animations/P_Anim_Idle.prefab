@@ -450,6 +450,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animation: {fileID: 6388502011091257309}
   _loop: 1
+  _canMove: 1
 --- !u!114 &6388502011091257309
 MonoBehaviour:
   m_ObjectHideFlags: 0

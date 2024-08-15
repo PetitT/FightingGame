@@ -21,12 +21,21 @@ public abstract class CharacterStateBase : MonoBehaviour
         _animation.Initialize();
     }
 
-    public virtual void ProcessInput(
-        Inputs input
+    // This method is called every frame
+    public void ProcessCommand(
+        Command command
         )
     {
         UpdateAnimation();
         IncrementTick();
+        ProcessCommandInternal( command );
+    }
+
+    protected virtual void ProcessCommandInternal(
+         Command command
+        )
+    {
+
     }
 
     private void UpdateAnimation()
