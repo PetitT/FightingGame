@@ -8,6 +8,7 @@ public class ConnexionHandler : MonoBehaviour
     public bool IsAuthority => _runner.IsServer;
     public int PlayerCount => _runner.SessionInfo.PlayerCount;
     public bool IsOnline => _runner.GameMode != GameMode.Single;
+    public float DeltaTime => _runner.DeltaTime;
 
     public async UniTask<bool> Connect( ConnectionParameters parameters )
     {

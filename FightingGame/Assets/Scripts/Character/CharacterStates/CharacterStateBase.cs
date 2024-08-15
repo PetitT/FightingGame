@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -60,5 +61,10 @@ public abstract class CharacterStateBase : MonoBehaviour
         {
             OnAnimationOver.Invoke();
         }
+    }
+
+    public void Clear()
+    {
+        Destroy( gameObject );
     }
 }

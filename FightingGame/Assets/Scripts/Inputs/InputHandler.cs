@@ -16,7 +16,7 @@ public class InputHandler<T> where T : GameStateBase
     private int _expectedPlayerCount = 0;
     private int _inputDelay = 0;
     private int _currentTick = 0;
-    private bool _enableLogs = true;
+    private bool _enableLogs = false; //Add a way to easily modify this
 
     private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _currentTick;
 

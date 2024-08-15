@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Character : MonoBehaviour, IGameStateHolder<GameStateMatch>, IInputReceiver
 {
-    [SerializeField] private CharacterStateDescription _initialState = null;
+    [SerializeField] private CharacterStateData _stateData = null;
 
     private ETeam _team;
 
@@ -18,8 +18,7 @@ public class Character : MonoBehaviour, IGameStateHolder<GameStateMatch>, IInput
         )
     {
         _team = team;
-        _stateMachine = new CharacterStateMachine( transform );
-        _stateMachine.SetState( _initialState );
+        _stateMachine = new CharacterStateMachine( _stateData, transform );
         _gameStateHolders.Add( _stateMachine );
 
         _inputHandler = new CharacterInputHandler( _team );
@@ -27,8 +26,8 @@ public class Character : MonoBehaviour, IGameStateHolder<GameStateMatch>, IInput
         _inputHandler.OnCommand.AddListener( InputHandler_OnCommand );
     }
 
-    private void InputHandler_OnCommand( 
-        Command command 
+    private void InputHandler_OnCommand(
+        Command command
         )
     {
         _stateMachine.ProcessCommand( command );
