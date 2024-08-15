@@ -11,10 +11,13 @@ public abstract class CharacterStateBase : MonoBehaviour
     private int _currentTick = 0;
     private int _maxTicks => _animation.MaximumTicks;
     public UnityEvent OnAnimationOver => _onAnimationOver;
+    public int CurrentTick => _currentTick;
 
-    public void Initialize()
+    public void Initialize(
+        int start_tick = 0
+        )
     {
-        _currentTick = 0;
+        _currentTick = start_tick;
         _animation.Initialize();
     }
 
