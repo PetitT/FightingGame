@@ -11,7 +11,7 @@ public class CharacterStateDescription : ScriptableObject
         )
     {
         CharacterStateBase new_state = Instantiate( _statePrefab, _origin );
-        new_state.Initialize( start_tick );
+        new_state.Initialize( _origin, start_tick );
         return new_state;
     }
 }

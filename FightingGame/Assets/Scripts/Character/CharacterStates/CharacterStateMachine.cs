@@ -2,11 +2,10 @@ using UnityEngine;
 
 public class CharacterStateMachine : IGameStateHolder<GameStateMatch>
 {
-    private CharacterStateData _characterStateData;
-    private Transform _origin;
-    private CharacterStateBase _currentState;
-
-    private CharacterStateDescription _currentDescription;
+    private CharacterStateData _characterStateData = null;
+    private Transform _origin = null;
+    private CharacterStateBase _currentState = null;
+    private CharacterStateDescription _currentDescription = null;
 
     public CharacterStateMachine(
         CharacterStateData characterStateData,
@@ -22,7 +21,7 @@ public class CharacterStateMachine : IGameStateHolder<GameStateMatch>
         int tick = 0
         )
     {
-        if( _currentState != null ) 
+        if( _currentState != null )
         {
             _currentState.Clear();
         }

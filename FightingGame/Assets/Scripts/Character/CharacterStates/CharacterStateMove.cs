@@ -21,6 +21,6 @@ public class CharacterStateMove : CharacterStateBase
         )
     {
         Vector3 direction = command.MoveDirection == EMoveDirection.Left ? Vector2.left : Vector2.right;
-        transform.position += direction * _data.MovementData.MaxSpeed * delta;
+        _parent.transform.position += direction * _data.MovementData.MaxSpeed * delta;
     }
 }

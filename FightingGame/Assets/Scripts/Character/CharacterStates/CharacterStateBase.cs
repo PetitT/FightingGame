@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,14 +9,18 @@ public abstract class CharacterStateBase : MonoBehaviour
     private UnityEvent _onAnimationOver = new();
 
     private int _currentTick = 0;
+    protected Transform _parent;
+
     private int _maxTicks => _animation.MaximumTicks;
     public UnityEvent OnAnimationOver => _onAnimationOver;
     public int CurrentTick => _currentTick;
 
     public void Initialize(
+        Transform origin,
         int start_tick = 0
         )
     {
+        _parent = origin;
         _currentTick = start_tick;
         _animation.Initialize();
     }
