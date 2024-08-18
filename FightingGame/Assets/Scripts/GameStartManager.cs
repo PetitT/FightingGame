@@ -1,42 +1,59 @@
-﻿using Fusion;
+﻿using Cysharp.Threading.Tasks;
+using Fusion;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameStartManager : NetworkBehaviour
 {
-
     [SerializeField] private GameDatas _gameDatas;
 
-    public readonly BufferedEvent<int> OnStartTickDecided = new();
+    private readonly List<PlayerRef> _readyPlayersList = new();
+    private PlayerRef _clientPlayer = PlayerRef.None;
 
-    [Networked, OnChangedRender( nameof( OnStartTickChanged ) )] private int _startTick { get; set; }
+    public readonly BufferedEvent OnGameStarted = new();
+
+
     private int _ticksForGameStart => _gameDatas.TicksForGameStart;
 
-    public override void Spawned()
+    public void SetReady()
     {
-        if( !HasStateAuthority
-            && _startTick != 0
-            )
-        {
-            OnStartTickChanged();
-        }
+        RPC_SetReady();
     }
 
-    public void StartGame()
-    {
-        RPC_StartGame();
-    }
-
-    [Rpc( RpcSources.StateAuthority, RpcTargets.StateAuthority )]
-    private void RPC_StartGame(
+    [Rpc( RpcSources.All, RpcTargets.StateAuthority )]
+    private void RPC_SetReady(
         RpcInfo info = default
         )
     {
-        _startTick = info.Tick.Raw + _ticksForGameStart;
+        _readyPlayersList.Add( info.Source );
+
+        if( !info.IsInvokeLocal )
+        {
+            _clientPlayer = info.Source;
+        }
+
+        if( _readyPlayersList.Count == ScenarioManager.Instance.ActiveScenario.ConnexionHandler.MaxPlayersCount )
+        {
+            RPC_StartGame();
+        }
     }
 
-    private void OnStartTickChanged()
+    [Rpc( RpcSources.StateAuthority, RpcTargets.All )]
+    private void RPC_StartGame()
     {
-        Debug.Log( $"Start tick changed to {_startTick}" );
-        OnStartTickDecided.FireEvent( _startTick );
+        StartGameAsync().Forget();
+    }
+
+    private async UniTask StartGameAsync()
+    {
+        if( HasStateAuthority )
+        {
+            Debug.Log( $"End of wait {DateTime.Now.Second} - {DateTime.Now.Millisecond}" );
+            await UniTask.Delay( TimeSpan.FromSeconds( ScenarioManager.Instance.ActiveScenario.ConnexionHandler.GetPlayerRtt( _clientPlayer ) / 4 ) );
+        }
+
+        Debug.Log( $"End of wait {DateTime.Now.Second} - {DateTime.Now.Millisecond}" );
+        OnGameStarted.Invoke();
     }
 }

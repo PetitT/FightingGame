@@ -1,21 +1,17 @@
+using Cysharp.Threading.Tasks;
 using Fusion;
+using System;
 using UnityEngine;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
     [SerializeField] private InputReader _inputReader = null;
     [SerializeField] private InputManager _inputManager = null;
-    [SerializeField] private CharacterDescription _characterDescription = null;
-
-    private Character _character = null;
-
-    private const int INVALID_TICK = -1;
-    private int StartTick = INVALID_TICK;
 
     private bool _gameStarted = false;
-    private ETeam _team = ETeam.TeamOne;
+    private int _currentTick = 0;
 
-    public int CurrentTick => Runner.Tick.Raw;
+    [Networked] public ETeam Team { get; private set; }
 
     public override void Spawned()
     {
@@ -26,7 +22,8 @@ public class NetworkPlayerController : NetworkBehaviour
             return;
         }
 
-        GameManager.Instance.GameStartManager.OnStartTickDecided.SetEventCallback( GameManager_OnStartTickDecided );
+        GameManager.Instance.GameStartManager.OnGameStarted.AddListener( GameManager_OnGameStarted );
+        GameManager.Instance.GameStartManager.SetReady();
     }
 
     public override void Despawned(
@@ -34,53 +31,39 @@ public class NetworkPlayerController : NetworkBehaviour
         bool has_state
         )
     {
-        GameManager.Instance.GameStartManager.OnStartTickDecided.ClearEventCallback( GameManager_OnStartTickDecided );
+        GameManager.Instance.GameStartManager.OnGameStarted.RemoveListener( GameManager_OnGameStarted );
     }
 
     public void Initialize(
         ETeam team
         )
     {
-        _team = team;
+        Team = team;
     }
 
-    public override void FixedUpdateNetwork()
+    private async UniTaskVoid UpdateLoopAsync()
     {
-        CheckForGameStart();
-        UpdateInputs();
-    }
-
-    private void CheckForGameStart()
-    {
-        if( StartTick == INVALID_TICK
-            || _gameStarted
-            )
+        while( true )
         {
-            return;
-        }
-
-        if( CurrentTick == StartTick )
-        {
-            _gameStarted = true;
-            _character = _characterDescription.GetCharacter( _team );
-            GameManager.Instance.InputReceiverManager.RegisterInputReceiver( _character );
-            _inputReader.Initialize( _team );
-            _inputManager.Initialize( GameManager.Instance.InputReceiverManager, GameManager.Instance.GameStateManager, _team );
-            Debug.Log( $"Tick {StartTick} attained, starting the game" );
+            UpdateInputs();
+            await UniTask.Delay( TimeSpan.FromSeconds( Runner.DeltaTime ) );
         }
     }
 
     private void UpdateInputs()
     {
-        _inputReader.OnFixedUpdateNetwork();
-        _inputManager.OnFixedUpdateNetwork( CurrentTick );
+        _inputReader.OnFixedUpdateNetwork( _currentTick );
+        _inputManager.OnFixedUpdateNetwork( _currentTick );
+        _currentTick++;
     }
 
-    private void GameManager_OnStartTickDecided(
-        int tick
-        )
+    private void GameManager_OnGameStarted()
     {
-        Debug.Log( $"Received start tick: {tick}, current is {CurrentTick}" );
-        StartTick = tick;
+        Debug.Log( $"Game begin" );
+
+        _inputReader.Initialize( Team );
+        _inputManager.Initialize( GameManager.Instance.InputReceiverManager, GameManager.Instance.GameStateManager, Team );
+        GameManager.Instance.CharacterManager.SpawnAllCharacters();
+        UpdateLoopAsync().Forget();
     }
 }

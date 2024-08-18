@@ -49,7 +49,8 @@ public class CharacterStateMachine : IGameStateHolder<GameStateMatch>
         game_state._stateMachineData = new GameStateMatch.StateMachineData
         {
             Description = _currentDescription,
-            Tick = _currentState.CurrentTick
+            Tick = _currentState.CurrentTick,
+            Position = _origin.transform.position
         };
     }
 
@@ -58,6 +59,7 @@ public class CharacterStateMachine : IGameStateHolder<GameStateMatch>
         )
     {
         SetState( game_state._stateMachineData.Description, game_state._stateMachineData.Tick );
+        _origin.transform.position = game_state._stateMachineData.Position;
     }
 
     //This should be a behaviour tree

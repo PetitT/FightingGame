@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ef8125e7d81e474c82eae50a8d36a0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultScenario: {fileID: 11400000, guid: ff2a02f9d05ccd040b8d92d8241612ca, type: 2}
+  _defaultScenario: {fileID: 11400000, guid: f3296003e7836c441bd3a649a3933232, type: 2}
 --- !u!114 &194708372
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -6,11 +6,12 @@ using UnityEngine;
 
 public class GameNetworkEventsHandler : MonoBehaviour
 {
-    [SerializeField] private GameManager _gameManagerPrefab;
-    [SerializeField] private NetworkPlayerController _networkPlayerControllerPrefab;
+    [SerializeField] private GameManager _gameManagerPrefab = null;
+    [SerializeField] private NetworkPlayerController _networkPlayerControllerPrefab = null;
 
     int _playerCount = 0;
     private bool _gameStarted = false;
+    private GameManager _gameManager = null;
 
     private void Awake()
     {
@@ -41,21 +42,11 @@ public class GameNetworkEventsHandler : MonoBehaviour
 
         if( runner.ActivePlayers.Count() == 1 )
         {
-            runner.Spawn( _gameManagerPrefab, Vector3.zero, Quaternion.identity );
+            _gameManager = runner.Spawn( _gameManagerPrefab, Vector3.zero, Quaternion.identity );
         }
 
         NetworkPlayerController controller = runner.Spawn( _networkPlayerControllerPrefab, Vector3.zero, Quaternion.identity, inputAuthority: player );
         controller.Initialize( (ETeam)_playerCount++ + 1 ); //dumb
-
-        if( runner.ActivePlayers.Count() >= runner.SessionInfo.MaxPlayers
-            && !_gameStarted
-            )
-        {
-            _gameStarted = true;
-
-            GameManager.Instance.GameStartManager.StartGame();
-            Debug.Log( $"All players are connected, starting the game" );
-        }
     }
 
     private void ConnexionHandler_OnPlayerLeft(

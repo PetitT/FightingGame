@@ -15,12 +15,16 @@ public class InputReader : NetworkBehaviour
         _team = team;
     }
 
-    public void OnFixedUpdateNetwork()
+    public void OnFixedUpdateNetwork(
+        int tick
+        )
     {
-        ReadInputs();
+        ReadInputs( tick );
     }
 
-    private void ReadInputs()
+    private void ReadInputs(
+        int tick
+        )
     {
         Inputs inputs = new Inputs(
             _team,
@@ -29,17 +33,18 @@ public class InputReader : NetworkBehaviour
             (int)_inputs.Character.Attack.ReadValue<float>() > 0
             );
 
-        RPC_SendInput( Runner, inputs.ToByte() );
+        RPC_SendInput( Runner, inputs.ToByte(), tick );
     }
 
     [Rpc( RpcSources.All, RpcTargets.All )]
     public static void RPC_SendInput(
         NetworkRunner runner,
         byte input,
+        int tick,
         RpcInfo info = default
         )
     {
-        OnInputReceived.Invoke( new InputReceivedArgs( info.Tick.Raw, new Inputs( input ), info.IsInvokeLocal ) );
+        OnInputReceived.Invoke( new InputReceivedArgs( tick, new Inputs( input ), info.IsInvokeLocal ) );
     }
 
     private void Awake()

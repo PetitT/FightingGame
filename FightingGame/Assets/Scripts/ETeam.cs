@@ -1,6 +1,6 @@
 public enum ETeam : byte
 {
-    None = 0,
-    TeamOne = 1,
-    TeamTwo = 2
+    TeamOne = 0,
+    TeamTwo = 1,
+    None = 2,
 }

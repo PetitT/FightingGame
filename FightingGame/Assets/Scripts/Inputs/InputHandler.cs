@@ -15,10 +15,10 @@ public class InputHandler<T> where T : GameStateBase
 
     private int _expectedPlayerCount = 0;
     private int _inputDelay = 0;
-    private int _currentTick = 0;
-    private bool _enableLogs = false; //Add a way to easily modify this
+    private int _tickToProcess = 0;
+    private bool _enableLogs = true; //Add a way to easily modify this
 
-    private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _currentTick;
+    private bool IsInPrediction => _inputInfos.Count > 0 && _inputInfos.First().Key < _tickToProcess;
 
     private InputHandler() { }
 
@@ -41,8 +41,8 @@ public class InputHandler<T> where T : GameStateBase
         int tick
         )
     {
-        _currentTick = tick;
-        Log( $"Applying tick {_currentTick}" );
+        _tickToProcess = tick;
+        Log( $"Applying tick {_tickToProcess}" );
         RestoreToRealGameState();
         ApplyCurrentTick();
     }
@@ -62,24 +62,24 @@ public class InputHandler<T> where T : GameStateBase
 
     private void ApplyCurrentTick()
     {
-        if( !_inputInfos.ContainsKey( _currentTick ) )
+        if( !_inputInfos.ContainsKey( _tickToProcess ) )
         {
-            Log( $"No input infos found for tick {_currentTick}." );
+            Log( $"No input infos found for tick {_tickToProcess}." );
             return;
         }
 
-        InputInfos current_infos = _inputInfos[ _currentTick ];
+        InputInfos current_infos = _inputInfos[ _tickToProcess ];
 
         if( !current_infos.HasInputsFromAllPlayers() )
         {
             current_infos.AddPredictedInput( _lastReceivedOpponentInput );
-            ApplyInputs( current_infos.PredictedInputs, _currentTick );
+            ApplyInputs( current_infos.PredictedInputs, _tickToProcess );
             Log( "Predicted tick" );
         }
         else
         {
-            ApplyInputs( current_infos.RealInputs, _currentTick );
-            ValidateTick( _currentTick );
+            ApplyInputs( current_infos.RealInputs, _tickToProcess );
+            ValidateTick( _tickToProcess );
             Log( $"Applied real tick" );
         }
     }
@@ -93,7 +93,7 @@ public class InputHandler<T> where T : GameStateBase
 
         int first_tick = _inputInfos.First().Key;
 
-        for( int target_tick = first_tick; target_tick < _currentTick; target_tick++ )
+        for( int target_tick = first_tick; target_tick < _tickToProcess; target_tick++ )
         {
             InputInfos input_infos = _inputInfos[ target_tick ];
 
@@ -145,8 +145,14 @@ public class InputHandler<T> where T : GameStateBase
         int initial_tick
         )
     {
-        for( int current_tick = initial_tick; current_tick < _currentTick; current_tick++ )
+        for( int current_tick = initial_tick; current_tick < _tickToProcess; current_tick++ )
         {
+            if( !_inputInfos.ContainsKey( current_tick ) )
+            {
+                Log( $"No input infos found for tick {current_tick}." );
+                break;
+            }
+
             InputInfos current_inputs = _inputInfos[ current_tick ];
 
             if( current_inputs.HasInputsFromAllPlayers() )

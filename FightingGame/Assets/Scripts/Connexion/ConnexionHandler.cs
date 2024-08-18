@@ -1,16 +1,20 @@
 using Fusion;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System;
 
 public class ConnexionHandler : MonoBehaviour
 {
     [SerializeField] private NetworkRunner _runner = null;
     public bool IsAuthority => _runner.IsServer;
     public int PlayerCount => _runner.SessionInfo.PlayerCount;
+    public int MaxPlayersCount => _runner.SessionInfo.MaxPlayers;
     public bool IsOnline => _runner.GameMode != GameMode.Single;
     public float DeltaTime => _runner.DeltaTime;
 
-    public async UniTask<bool> Connect( ConnectionParameters parameters )
+    public async UniTask<bool> Connect(
+        ConnectionParameters parameters
+        )
     {
         if( parameters.NetworkEventsListener != null )
         {
@@ -34,5 +38,12 @@ public class ConnexionHandler : MonoBehaviour
     public void Disconnect()
     {
         Destroy( gameObject );
+    }
+
+    public double GetPlayerRtt(
+        PlayerRef player
+        )
+    {
+        return _runner.GetPlayerRtt( player );
     }
 }
